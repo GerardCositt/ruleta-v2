@@ -536,6 +536,61 @@
             transform: scale(1.05);
         }
 
+        /* Modal de estadísticas */
+        .stats-modal-content {
+            background: linear-gradient(135deg, var(--ocean-medium), var(--ocean-deep));
+            padding: 3rem;
+            border-radius: 30px;
+            max-width: 700px;
+            width: 90%;
+            border: 4px solid var(--gold);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            animation: modalPop 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .stats-section {
+            margin-bottom: 2rem;
+        }
+
+        .stats-section h3 {
+            color: var(--sand);
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            font-family: 'Playfair Display', serif;
+        }
+
+        .ranking-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1rem;
+            border-radius: 12px;
+            margin-bottom: 0.75rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid var(--gold);
+        }
+
+        .ranking-position {
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: var(--gold);
+            margin-right: 1rem;
+        }
+
+        .ranking-info {
+            flex: 1;
+        }
+
+        .ranking-count {
+            background: var(--buoy-red);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 700;
+        }
+
         /* Panel de admin oculto */
         .admin-link {
             position: fixed;
@@ -881,6 +936,40 @@
         </div>
     </div>
 
+    <!-- Modal de estadísticas -->
+    <div class="modal-overlay" id="statsModal">
+        <div class="stats-modal-content">
+            <div class="admin-header" style="border-bottom: 2px solid rgba(255,255,255,0.2); padding-bottom: 1rem; margin-bottom: 2rem;">
+                <h2 class="modal-title" style="margin: 0;">📊 Estadísticas Completas</h2>
+                <button class="admin-close" onclick="closeStatsModal()">×</button>
+            </div>
+            
+            <div class="stats-section">
+                <h3>🏆 Ranking de Ganadores</h3>
+                <div id="rankingList"></div>
+            </div>
+            
+            <div class="stats-section">
+                <h3>🎁 Distribución de Premios</h3>
+                <div id="prizeDistribution"></div>
+            </div>
+            
+            <div class="stats-section">
+                <h3>📈 Resumen General</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="stat-card">
+                        <div class="stat-label">Participantes únicos ganadores</div>
+                        <div class="stat-value" id="uniqueWinners">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Total sorteos realizados</div>
+                        <div class="stat-value" id="totalDrawsStats">0</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Panel de Administración -->
     <div class="admin-panel" id="adminPanel">
         <div class="admin-header">
@@ -1096,6 +1185,70 @@
         }
 
         // ==============================================
+        // ESTADÍSTICAS
+        // ==============================================
+
+        function showStats() {
+            const winCounts = {};
+            const prizeCounts = {};
+            
+            history.forEach(h => {
+                winCounts[h.participantId] = (winCounts[h.participantId] || 0) + 1;
+                prizeCounts[h.prize] = (prizeCounts[h.prize] || 0) + 1;
+            });
+            
+            // Ranking de ganadores
+            const ranking = Object.entries(winCounts)
+                .map(([id, count]) => {
+                    const participant = participants.find(p => p.id == id) || history.find(h => h.participantId == id);
+                    return {
+                        name: participant?.name || 'Desconocido',
+                        company: participant?.company || '',
+                        count: count
+                    };
+                })
+                .sort((a, b) => b.count - a.count)
+                .slice(0, 10);
+            
+            const rankingHTML = ranking.map((r, i) => `
+                <div class="ranking-item">
+                    <div class="ranking-position">${i + 1}</div>
+                    <div class="ranking-info">
+                        <div class="participant-name">${r.name}</div>
+                        <div class="participant-company">${r.company}</div>
+                    </div>
+                    <div class="ranking-count">${r.count} ${r.count === 1 ? 'vez' : 'veces'}</div>
+                </div>
+            `).join('');
+            
+            document.getElementById('rankingList').innerHTML = rankingHTML || '<p style="color: rgba(240,249,255,0.7);">No hay datos suficientes</p>';
+            
+            // Distribución de premios
+            const prizeHTML = Object.entries(prizeCounts)
+                .sort((a, b) => b[1] - a[1])
+                .map(([prize, count]) => `
+                    <div class="ranking-item">
+                        <div class="ranking-info">
+                            <div class="participant-name">${prize}</div>
+                        </div>
+                        <div class="ranking-count">${count}</div>
+                    </div>
+                `).join('');
+            
+            document.getElementById('prizeDistribution').innerHTML = prizeHTML || '<p style="color: rgba(240,249,255,0.7);">No hay datos suficientes</p>';
+            
+            // Resumen
+            document.getElementById('uniqueWinners').textContent = Object.keys(winCounts).length;
+            document.getElementById('totalDrawsStats').textContent = history.length;
+            
+            document.getElementById('statsModal').classList.add('show');
+        }
+
+        function closeStatsModal() {
+            document.getElementById('statsModal').classList.remove('show');
+        }
+
+        // ==============================================
         // RULETA - DIBUJO
         // ==============================================
 
@@ -1254,7 +1407,7 @@
         }
 
         // ==============================================
-        // SONIDOS (WEB AUDIO API)
+        // SONIDOS MEJORADOS - MÁS FESTIVOS
         // ==============================================
 
         function playSpinSound() {
@@ -1263,26 +1416,36 @@
             const duration = 5.5;
             const now = audioContext.currentTime;
             
-            // Tono alegre y musical ascendente-descendente
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
+            // Melodía festiva ascendente tipo carrusel
+            const melody = [
+                { freq: 523.25, time: 0 },      // Do
+                { freq: 587.33, time: 0.3 },    // Re
+                { freq: 659.25, time: 0.6 },    // Mi
+                { freq: 783.99, time: 0.9 },    // Sol
+                { freq: 880.00, time: 1.2 },    // La
+                { freq: 987.77, time: 1.5 }     // Si
+            ];
             
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
+            melody.forEach(note => {
+                const osc = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                
+                osc.connect(gain);
+                gain.connect(audioContext.destination);
+                
+                osc.type = 'sine';
+                osc.frequency.value = note.freq;
+                
+                const startTime = now + note.time;
+                gain.gain.setValueAtTime(0.15, startTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.3);
+                
+                osc.start(startTime);
+                osc.stop(startTime + 0.3);
+            });
             
-            oscillator.type = 'sine'; // Más suave y musical
-            oscillator.frequency.setValueAtTime(400, now); // Frecuencia más alta = más alegre
-            oscillator.frequency.exponentialRampToValueAtTime(800, now + 2); // Sube
-            oscillator.frequency.exponentialRampToValueAtTime(200, now + duration); // Baja suavemente
-            
-            gainNode.gain.setValueAtTime(0.08, now);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, now + duration);
-            
-            oscillator.start(now);
-            oscillator.stop(now + duration);
-            
-            // Clicks alegres tipo "tic-tac" de ruleta
-            for (let i = 0; i < 60; i++) {
+            // Clicks tipo ruleta de feria
+            for (let i = 0; i < 80; i++) {
                 setTimeout(() => {
                     if (!soundEnabled) return;
                     const click = audioContext.createOscillator();
@@ -1291,33 +1454,36 @@
                     click.connect(clickGain);
                     clickGain.connect(audioContext.destination);
                     
-                    click.type = 'sine';
-                    click.frequency.value = 1200 + Math.random() * 200; // Clicks más agudos
-                    clickGain.gain.value = 0.03;
+                    click.type = 'square';
+                    click.frequency.value = 1500 + Math.random() * 500;
+                    clickGain.gain.value = 0.04;
                     
                     const clickTime = audioContext.currentTime;
                     click.start(clickTime);
-                    click.stop(clickTime + 0.015);
-                }, i * 90 + Math.random() * 30);
+                    click.stop(clickTime + 0.02);
+                }, i * 65 + Math.random() * 20);
             }
             
-            // Capa adicional de brillo para alegría
-            const shimmer = audioContext.createOscillator();
-            const shimmerGain = audioContext.createGain();
-            
-            shimmer.connect(shimmerGain);
-            shimmerGain.connect(audioContext.destination);
-            
-            shimmer.type = 'triangle';
-            shimmer.frequency.setValueAtTime(2000, now);
-            shimmer.frequency.exponentialRampToValueAtTime(3000, now + 2);
-            shimmer.frequency.exponentialRampToValueAtTime(1500, now + duration);
-            
-            shimmerGain.gain.setValueAtTime(0.03, now);
-            shimmerGain.gain.exponentialRampToValueAtTime(0.001, now + duration);
-            
-            shimmer.start(now);
-            shimmer.stop(now + duration);
+            // Campanitas de fondo
+            for (let i = 0; i < 8; i++) {
+                setTimeout(() => {
+                    if (!soundEnabled) return;
+                    const bell = audioContext.createOscillator();
+                    const bellGain = audioContext.createGain();
+                    
+                    bell.connect(bellGain);
+                    bellGain.connect(audioContext.destination);
+                    
+                    bell.type = 'sine';
+                    bell.frequency.value = 2000 + Math.random() * 1000;
+                    bellGain.gain.value = 0.05;
+                    
+                    const bellTime = audioContext.currentTime;
+                    bellGain.gain.exponentialRampToValueAtTime(0.001, bellTime + 0.2);
+                    bell.start(bellTime);
+                    bell.stop(bellTime + 0.2);
+                }, i * 700);
+            }
         }
 
         function playWinnerSound() {
@@ -1325,48 +1491,75 @@
             
             const now = audioContext.currentTime;
             
-            // Fanfarria de victoria
-            const frequencies = [523.25, 659.25, 783.99, 1046.50]; // Do, Mi, Sol, Do (octava)
+            // Fanfarria triunfal mejorada
+            const fanfare = [
+                { freq: 523.25, time: 0, duration: 0.2 },      // Do
+                { freq: 659.25, time: 0.15, duration: 0.2 },   // Mi
+                { freq: 783.99, time: 0.3, duration: 0.2 },    // Sol
+                { freq: 1046.50, time: 0.45, duration: 0.5 },  // Do alto
+                { freq: 1046.50, time: 0.7, duration: 0.3 },   // Do alto (repetición)
+                { freq: 1318.51, time: 0.9, duration: 0.6 }    // Mi alto (final)
+            ];
             
-            frequencies.forEach((freq, index) => {
-                setTimeout(() => {
-                    const osc = audioContext.createOscillator();
-                    const gain = audioContext.createGain();
-                    
-                    osc.connect(gain);
-                    gain.connect(audioContext.destination);
-                    
-                    osc.type = 'sine';
-                    osc.frequency.value = freq;
-                    
-                    const startTime = audioContext.currentTime;
-                    gain.gain.setValueAtTime(0.2, startTime);
-                    gain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.5);
-                    
-                    osc.start(startTime);
-                    osc.stop(startTime + 0.5);
-                }, index * 150);
+            fanfare.forEach(note => {
+                const osc = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                
+                osc.connect(gain);
+                gain.connect(audioContext.destination);
+                
+                osc.type = 'triangle';
+                osc.frequency.value = note.freq;
+                
+                const startTime = now + note.time;
+                gain.gain.setValueAtTime(0.3, startTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, startTime + note.duration);
+                
+                osc.start(startTime);
+                osc.stop(startTime + note.duration);
             });
             
-            // Efecto de brillo adicional
+            // Explosión de confeti sonora
+            for (let i = 0; i < 15; i++) {
+                setTimeout(() => {
+                    if (!soundEnabled) return;
+                    const confetti = audioContext.createOscillator();
+                    const confettiGain = audioContext.createGain();
+                    
+                    confetti.connect(confettiGain);
+                    confettiGain.connect(audioContext.destination);
+                    
+                    confetti.type = 'sine';
+                    confetti.frequency.value = 1500 + Math.random() * 2000;
+                    confettiGain.gain.value = 0.08;
+                    
+                    const confettiTime = audioContext.currentTime;
+                    confettiGain.gain.exponentialRampToValueAtTime(0.001, confettiTime + 0.15);
+                    confetti.start(confettiTime);
+                    confetti.stop(confettiTime + 0.15);
+                }, i * 50);
+            }
+            
+            // Brillo final espectacular
             setTimeout(() => {
+                if (!soundEnabled) return;
                 const shimmer = audioContext.createOscillator();
                 const shimmerGain = audioContext.createGain();
                 
                 shimmer.connect(shimmerGain);
                 shimmerGain.connect(audioContext.destination);
                 
-                shimmer.type = 'triangle';
+                shimmer.type = 'sine';
                 const shimmerTime = audioContext.currentTime;
-                shimmer.frequency.setValueAtTime(1000, shimmerTime);
-                shimmer.frequency.exponentialRampToValueAtTime(2000, shimmerTime + 0.3);
+                shimmer.frequency.setValueAtTime(2000, shimmerTime);
+                shimmer.frequency.exponentialRampToValueAtTime(4000, shimmerTime + 0.4);
                 
-                shimmerGain.gain.setValueAtTime(0.15, shimmerTime);
-                shimmerGain.gain.exponentialRampToValueAtTime(0.01, shimmerTime + 0.3);
+                shimmerGain.gain.setValueAtTime(0.2, shimmerTime);
+                shimmerGain.gain.exponentialRampToValueAtTime(0.001, shimmerTime + 0.4);
                 
                 shimmer.start(shimmerTime);
-                shimmer.stop(shimmerTime + 0.3);
-            }, 600);
+                shimmer.stop(shimmerTime + 0.4);
+            }, 1000);
         }
 
         function playClickSound() {
@@ -1609,8 +1802,11 @@
             });
 
             // Stats button
-            document.getElementById('statsButton').addEventListener('click', () => {
-                alert('Funcionalidad de estadísticas avanzadas próximamente');
+            document.getElementById('statsButton').addEventListener('click', showStats);
+            
+            // Cerrar modales al hacer click fuera
+            document.getElementById('statsModal').addEventListener('click', (e) => {
+                if (e.target.id === 'statsModal') closeStatsModal();
             });
         }
 
