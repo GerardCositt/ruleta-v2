@@ -1,0 +1,1529 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ruleta BNI Jábega - Sorteo Marino</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --ocean-deep: #0A2463;
+            --ocean-medium: #1E3A8A;
+            --ocean-light: #3B82F6;
+            --wave-white: #F0F9FF;
+            --buoy-red: #DC2626;
+            --buoy-bright: #EF4444;
+            --sand: #FEF3C7;
+            --rope: #92400E;
+            --gold: #F59E0B;
+            --silver: #E5E7EB;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(180deg, var(--ocean-deep) 0%, var(--ocean-medium) 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Efecto de olas animadas de fondo */
+        .ocean-waves {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 200px;
+            z-index: 0;
+            opacity: 0.15;
+            pointer-events: none;
+        }
+
+        .wave {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 200%;
+            height: 100%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120"><path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" fill="%23F0F9FF"/></svg>') repeat-x;
+            animation: wave 25s cubic-bezier(0.36, 0.45, 0.63, 0.53) infinite;
+        }
+
+        .wave:nth-of-type(2) {
+            bottom: -10px;
+            opacity: 0.5;
+            animation: wave 20s cubic-bezier(0.36, 0.45, 0.63, 0.53) -.125s infinite, swell 7s ease -1.25s infinite;
+        }
+
+        @keyframes wave {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(-25%); }
+            100% { transform: translateX(-50%); }
+        }
+
+        @keyframes swell {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header con branding marino */
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .jabega-icon {
+            width: 80px;
+            height: 80px;
+            filter: drop-shadow(0 4px 12px rgba(239, 68, 68, 0.3));
+        }
+
+        .header h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 3.5rem;
+            font-weight: 900;
+            color: var(--wave-white);
+            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), 0 0 40px rgba(59, 130, 246, 0.5);
+            letter-spacing: -1px;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: var(--sand);
+            font-size: 1.2rem;
+            font-weight: 500;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Layout principal */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr;
+            gap: 2rem;
+            align-items: start;
+        }
+
+        /* Panel lateral */
+        .side-panel {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+
+        .panel-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            color: var(--sand);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .panel-icon {
+            font-size: 1.8rem;
+        }
+
+        .participant-list {
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 0.5rem;
+        }
+
+        .participant-item {
+            background: rgba(255, 255, 255, 0.08);
+            padding: 1rem;
+            border-radius: 12px;
+            margin-bottom: 0.75rem;
+            border-left: 4px solid var(--buoy-red);
+            transition: all 0.3s ease;
+        }
+
+        .participant-item:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateX(5px);
+        }
+
+        .participant-name {
+            color: var(--wave-white);
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .participant-company {
+            color: rgba(240, 249, 255, 0.7);
+            font-size: 0.85rem;
+        }
+
+        /* Contenedor de la ruleta */
+        .wheel-container {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .wheel-frame {
+            position: relative;
+            width: 600px;
+            height: 600px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Decoración de cuerda alrededor */
+        .rope-decoration {
+            position: absolute;
+            width: 640px;
+            height: 640px;
+            border: 12px dashed var(--rope);
+            border-radius: 50%;
+            opacity: 0.3;
+            animation: rotate-slow 60s linear infinite;
+        }
+
+        @keyframes rotate-slow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* La ruleta */
+        .wheel {
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+            position: relative;
+            box-shadow: 
+                0 0 0 20px rgba(220, 38, 38, 0.3),
+                0 0 0 40px rgba(10, 36, 99, 0.2),
+                0 20px 60px rgba(0, 0, 0, 0.5),
+                inset 0 0 60px rgba(0, 0, 0, 0.3);
+            transition: transform 6s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+            transform-origin: center;
+        }
+
+        .wheel.spinning {
+            transition: transform 6s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+        }
+
+        /* Centro de la ruleta */
+        .wheel-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, var(--buoy-red), var(--buoy-bright));
+            border-radius: 50%;
+            box-shadow: 
+                0 0 0 10px var(--wave-white),
+                0 0 0 15px var(--ocean-deep),
+                0 8px 30px rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            color: white;
+            font-weight: 900;
+        }
+
+        /* Indicador/flecha */
+        .wheel-pointer {
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 30px solid transparent;
+            border-right: 30px solid transparent;
+            border-top: 50px solid var(--buoy-red);
+            filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.4));
+            z-index: 5;
+            animation: pointer-bounce 1s ease-in-out infinite;
+        }
+
+        @keyframes pointer-bounce {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(-8px); }
+        }
+
+        /* Botones de control */
+        .controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 1.25rem 3rem;
+            font-size: 1.3rem;
+            font-weight: 700;
+            border: none;
+            border-radius: 60px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Montserrat', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--buoy-red), var(--buoy-bright));
+            color: white;
+            box-shadow: 0 8px 24px rgba(220, 38, 38, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 32px rgba(220, 38, 38, 0.6);
+        }
+
+        .btn-primary:disabled {
+            background: linear-gradient(135deg, #9CA3AF, #6B7280);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            color: var(--wave-white);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+        }
+
+        /* Estadísticas */
+        .stats-grid {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.08);
+            padding: 1.25rem;
+            border-radius: 12px;
+            border-left: 4px solid var(--gold);
+        }
+
+        .stat-label {
+            color: rgba(240, 249, 255, 0.7);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            color: var(--wave-white);
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .winner-history {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            background: rgba(255, 255, 255, 0.08);
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 0.75rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .history-name {
+            color: var(--wave-white);
+            font-weight: 600;
+        }
+
+        .history-prize {
+            color: var(--gold);
+            font-size: 0.9rem;
+        }
+
+        .history-date {
+            color: rgba(240, 249, 255, 0.5);
+            font-size: 0.75rem;
+            margin-top: 0.25rem;
+        }
+
+        /* Modal de ganador */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 36, 99, 0.95);
+            backdrop-filter: blur(10px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, var(--ocean-medium), var(--ocean-deep));
+            padding: 4rem;
+            border-radius: 30px;
+            text-align: center;
+            max-width: 600px;
+            border: 4px solid var(--buoy-red);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            animation: modalPop 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            position: relative;
+            overflow: hidden;
+        }
+
+        @keyframes modalPop {
+            0% { transform: scale(0.5) rotate(-5deg); opacity: 0; }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+
+        .modal-decoration {
+            position: absolute;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 8rem;
+            opacity: 0.1;
+        }
+
+        .modal-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            color: var(--sand);
+            margin-bottom: 2rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .modal-winner {
+            font-size: 3.5rem;
+            font-weight: 900;
+            color: var(--wave-white);
+            margin-bottom: 1rem;
+            text-shadow: 0 4px 20px rgba(239, 68, 68, 0.5);
+            animation: winnerGlow 1.5s ease-in-out infinite;
+        }
+
+        @keyframes winnerGlow {
+            0%, 100% { text-shadow: 0 4px 20px rgba(239, 68, 68, 0.5); }
+            50% { text-shadow: 0 4px 30px rgba(239, 68, 68, 0.9), 0 0 50px rgba(239, 68, 68, 0.5); }
+        }
+
+        .modal-prize {
+            font-size: 1.5rem;
+            color: var(--gold);
+            margin-bottom: 2rem;
+        }
+
+        .modal-company {
+            color: rgba(240, 249, 255, 0.7);
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+        }
+
+        .btn-close-modal {
+            background: var(--buoy-red);
+            color: white;
+            padding: 1rem 2.5rem;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-close-modal:hover {
+            background: var(--buoy-bright);
+            transform: scale(1.05);
+        }
+
+        /* Panel de admin oculto */
+        .admin-link {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            width: 30px;
+            height: 30px;
+            opacity: 0.05;
+            cursor: pointer;
+            z-index: 999;
+        }
+
+        .admin-panel {
+            position: fixed;
+            top: 0;
+            right: -500px;
+            width: 500px;
+            height: 100vh;
+            background: linear-gradient(135deg, var(--ocean-deep), #1a1a2e);
+            box-shadow: -5px 0 30px rgba(0, 0, 0, 0.5);
+            transition: right 0.3s ease;
+            z-index: 1001;
+            overflow-y: auto;
+            padding: 2rem;
+        }
+
+        .admin-panel.open {
+            right: 0;
+        }
+
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .admin-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            color: var(--sand);
+        }
+
+        .admin-close {
+            background: var(--buoy-red);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .admin-close:hover {
+            transform: rotate(90deg);
+            background: var(--buoy-bright);
+        }
+
+        .admin-section {
+            margin-bottom: 2rem;
+        }
+
+        .admin-section-title {
+            color: var(--wave-white);
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-label {
+            display: block;
+            color: rgba(240, 249, 255, 0.8);
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 8px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--wave-white);
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1rem;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--buoy-red);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .participant-admin-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .participant-admin-item {
+            background: rgba(255, 255, 255, 0.08);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .participant-admin-info {
+            flex: 1;
+        }
+
+        .participant-admin-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-small {
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .btn-edit {
+            background: var(--ocean-light);
+            color: white;
+        }
+
+        .btn-delete {
+            background: var(--buoy-red);
+            color: white;
+        }
+
+        .btn-toggle {
+            background: var(--gold);
+            color: var(--ocean-deep);
+        }
+
+        .btn-small:hover {
+            transform: translateY(-2px);
+            opacity: 0.9;
+        }
+
+        /* Scrollbar personalizado */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--buoy-red);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--buoy-bright);
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .wheel-frame,
+            .wheel {
+                width: 500px;
+                height: 500px;
+            }
+
+            .rope-decoration {
+                width: 540px;
+                height: 540px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.5rem;
+            }
+
+            .wheel-frame,
+            .wheel {
+                width: 350px;
+                height: 350px;
+            }
+
+            .rope-decoration {
+                width: 390px;
+                height: 390px;
+            }
+
+            .wheel-center {
+                width: 80px;
+                height: 80px;
+                font-size: 1.5rem;
+            }
+
+            .btn {
+                padding: 1rem 2rem;
+                font-size: 1.1rem;
+            }
+
+            .modal-content {
+                padding: 2rem;
+                margin: 1rem;
+            }
+
+            .modal-winner {
+                font-size: 2.5rem;
+            }
+
+            .admin-panel {
+                width: 100%;
+                right: -100%;
+            }
+        }
+
+        .sound-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: var(--wave-white);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+
+        .sound-toggle:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body>
+    <!-- Efecto de olas animadas -->
+    <div class="ocean-waves">
+        <div class="wave"></div>
+        <div class="wave"></div>
+    </div>
+
+    <!-- Botón de sonido -->
+    <button class="sound-toggle" id="soundToggle" title="Activar/Desactivar sonido">🔊</button>
+
+    <!-- Enlace oculto al admin -->
+    <div class="admin-link" id="adminLink"></div>
+
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo-container">
+                <svg class="jabega-icon" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M50 10 L80 30 L75 50 L80 70 L50 90 L20 70 L25 50 L20 30 Z" fill="#DC2626" stroke="#F0F9FF" stroke-width="2"/>
+                    <path d="M35 40 Q50 35 65 40" stroke="#F0F9FF" stroke-width="2" fill="none"/>
+                    <path d="M35 50 Q50 45 65 50" stroke="#F0F9FF" stroke-width="2" fill="none"/>
+                    <path d="M35 60 Q50 55 65 60" stroke="#F0F9FF" stroke-width="2" fill="none"/>
+                    <circle cx="50" cy="25" r="3" fill="#F59E0B"/>
+                </svg>
+                <h1>Ruleta BNI Jábega</h1>
+                <svg class="jabega-icon" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M50 10 L80 30 L75 50 L80 70 L50 90 L20 70 L25 50 L20 30 Z" fill="#DC2626" stroke="#F0F9FF" stroke-width="2"/>
+                    <path d="M35 40 Q50 35 65 40" stroke="#F0F9FF" stroke-width="2" fill="none"/>
+                    <path d="M35 50 Q50 45 65 50" stroke="#F0F9FF" stroke-width="2" fill="none"/>
+                    <path d="M35 60 Q50 55 65 60" stroke="#F0F9FF" stroke-width="2" fill="none"/>
+                    <circle cx="50" cy="25" r="3" fill="#F59E0B"/>
+                </svg>
+            </div>
+            <p>🌊 Sorteo Marino de Presentaciones 🌊</p>
+        </header>
+
+        <!-- Layout principal -->
+        <div class="main-layout">
+            <!-- Panel izquierdo: Participantes -->
+            <div class="side-panel">
+                <h2 class="panel-title">
+                    <span class="panel-icon">👥</span>
+                    Participantes
+                </h2>
+                <div class="participant-list" id="participantList"></div>
+            </div>
+
+            <!-- Centro: Ruleta -->
+            <div class="wheel-container">
+                <div class="wheel-frame">
+                    <div class="rope-decoration"></div>
+                    <div class="wheel-pointer"></div>
+                    <canvas id="wheelCanvas" class="wheel" width="600" height="600"></canvas>
+                    <div class="wheel-center">⚓</div>
+                </div>
+                <div class="controls">
+                    <button class="btn btn-primary" id="spinButton">
+                        🎯 Girar Ruleta
+                    </button>
+                    <button class="btn btn-secondary" id="statsButton">
+                        📊 Estadísticas
+                    </button>
+                </div>
+            </div>
+
+            <!-- Panel derecho: Estadísticas -->
+            <div class="side-panel">
+                <h2 class="panel-title">
+                    <span class="panel-icon">🏆</span>
+                    Últimos Ganadores
+                </h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Total Sorteos</div>
+                        <div class="stat-value" id="totalDraws">0</div>
+                    </div>
+                </div>
+                <div class="winner-history" id="winnerHistory"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de ganador -->
+    <div class="modal-overlay" id="winnerModal">
+        <div class="modal-content">
+            <div class="modal-decoration">🎉</div>
+            <h2 class="modal-title">¡Ganador del Sorteo!</h2>
+            <div class="modal-winner" id="modalWinnerName"></div>
+            <div class="modal-company" id="modalWinnerCompany"></div>
+            <div class="modal-prize" id="modalPrize"></div>
+            <button class="btn-close-modal" id="closeModal">Continuar</button>
+        </div>
+    </div>
+
+    <!-- Panel de Administración -->
+    <div class="admin-panel" id="adminPanel">
+        <div class="admin-header">
+            <h2 class="admin-title">🔐 Panel Admin</h2>
+            <button class="admin-close" id="closeAdmin">×</button>
+        </div>
+
+        <!-- Gestión de participantes -->
+        <div class="admin-section">
+            <h3 class="admin-section-title">Gestionar Participantes</h3>
+            <div class="form-group">
+                <label class="form-label">Nombre</label>
+                <input type="text" class="form-input" id="adminName" placeholder="Nombre del participante">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Empresa/Sector</label>
+                <input type="text" class="form-input" id="adminCompany" placeholder="Empresa o sector">
+            </div>
+            <button class="btn btn-primary" id="addParticipant" style="width: 100%; margin-bottom: 1rem;">
+                ➕ Añadir Participante
+            </button>
+            <div class="participant-admin-list" id="adminParticipantList"></div>
+        </div>
+
+        <!-- Gestión de premios -->
+        <div class="admin-section">
+            <h3 class="admin-section-title">Premios Disponibles</h3>
+            <div class="form-group">
+                <label class="form-label">Nombre del Premio</label>
+                <input type="text" class="form-input" id="adminPrize" placeholder="Ej: Presentación 10 min">
+            </div>
+            <button class="btn btn-primary" id="addPrize" style="width: 100%; margin-bottom: 1rem;">
+                ➕ Añadir Premio
+            </button>
+            <div id="prizeList"></div>
+        </div>
+
+        <!-- Configuración -->
+        <div class="admin-section">
+            <h3 class="admin-section-title">Configuración</h3>
+            <div class="form-group">
+                <label class="form-label">
+                    <input type="checkbox" id="excludeRecent"> Excluir ganadores recientes
+                </label>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Últimas tiradas a excluir</label>
+                <input type="number" class="form-input" id="excludeCount" value="3" min="1" max="10">
+            </div>
+            <button class="btn btn-secondary" id="resetHistory" style="width: 100%; margin-top: 1rem;">
+                🔄 Reiniciar Histórico
+            </button>
+            <button class="btn btn-secondary" id="exportData" style="width: 100%; margin-top: 0.5rem;">
+                📥 Exportar Datos (CSV)
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // ==============================================
+        // DATOS Y CONFIGURACIÓN
+        // ==============================================
+        
+        const DEFAULT_PARTICIPANTS = [
+            { id: 1, name: "Ana García", company: "Consultoría Legal", active: true },
+            { id: 2, name: "Carlos Ruiz", company: "Arquitectura & Diseño", active: true },
+            { id: 3, name: "Elena Martínez", company: "Marketing Digital", active: true },
+            { id: 4, name: "Fernando López", company: "Asesoría Fiscal", active: true },
+            { id: 5, name: "Isabel Romero", company: "Recursos Humanos", active: true },
+            { id: 6, name: "Javier Sánchez", company: "Tecnología IT", active: true },
+            { id: 7, name: "Laura Pérez", company: "Fotografía Profesional", active: true },
+            { id: 8, name: "Miguel Torres", company: "Construcción", active: true },
+            { id: 9, name: "Patricia Díaz", company: "Seguros", active: true },
+            { id: 10, name: "Roberto Fernández", company: "Inmobiliaria", active: true },
+            { id: 11, name: "Sofía Morales", company: "Coaching Empresarial", active: true },
+            { id: 12, name: "Antonio Jiménez", company: "Hostelería", active: true },
+            { id: 13, name: "Carmen Vega", company: "Diseño Gráfico", active: true },
+            { id: 14, name: "David Castro", company: "Energías Renovables", active: true },
+            { id: 15, name: "Eva Ramos", company: "Floristería", active: true }
+        ];
+
+        const DEFAULT_PRIZES = [
+            "Presentación 10 minutos",
+            "Desayuno Networking",
+            "Visibilidad en Redes",
+            "Reunión 1 a 1",
+            "Testimonio Destacado"
+        ];
+
+        // Colores vibrantes para la ruleta
+        const WHEEL_COLORS = [
+            '#DC2626', '#EF4444', '#F87171', // Rojos
+            '#0A2463', '#1E3A8A', '#3B82F6', // Azules
+            '#F59E0B', '#FBBF24', '#FCD34D', // Dorados
+            '#059669', '#10B981', '#34D399'  // Verdes
+        ];
+
+        // Estado de la aplicación
+        let participants = [];
+        let prizes = [];
+        let history = [];
+        let isSpinning = false;
+        let soundEnabled = true;
+
+        // ==============================================
+        // INICIALIZACIÓN
+        // ==============================================
+
+        function init() {
+            loadData();
+            renderParticipants();
+            renderAdminParticipants();
+            renderPrizes();
+            renderHistory();
+            drawWheel();
+            setupEventListeners();
+        }
+
+        function loadData() {
+            const savedParticipants = localStorage.getItem('bni_participants');
+            const savedPrizes = localStorage.getItem('bni_prizes');
+            const savedHistory = localStorage.getItem('bni_history');
+
+            participants = savedParticipants ? JSON.parse(savedParticipants) : DEFAULT_PARTICIPANTS;
+            prizes = savedPrizes ? JSON.parse(savedPrizes) : DEFAULT_PRIZES;
+            history = savedHistory ? JSON.parse(savedHistory) : [];
+        }
+
+        function saveData() {
+            localStorage.setItem('bni_participants', JSON.stringify(participants));
+            localStorage.setItem('bni_prizes', JSON.stringify(prizes));
+            localStorage.setItem('bni_history', JSON.stringify(history));
+        }
+
+        // ==============================================
+        // RENDERIZADO
+        // ==============================================
+
+        function renderParticipants() {
+            const list = document.getElementById('participantList');
+            const activeParticipants = participants.filter(p => p.active);
+            
+            list.innerHTML = activeParticipants.map(p => `
+                <div class="participant-item">
+                    <div class="participant-name">${p.name}</div>
+                    <div class="participant-company">${p.company}</div>
+                </div>
+            `).join('');
+        }
+
+        function renderAdminParticipants() {
+            const list = document.getElementById('adminParticipantList');
+            
+            list.innerHTML = participants.map(p => `
+                <div class="participant-admin-item">
+                    <div class="participant-admin-info">
+                        <div class="participant-name" style="opacity: ${p.active ? 1 : 0.5}">
+                            ${p.name}
+                        </div>
+                        <div class="participant-company">${p.company}</div>
+                    </div>
+                    <div class="participant-admin-actions">
+                        <button class="btn-small btn-toggle" onclick="toggleParticipant(${p.id})">
+                            ${p.active ? '👁️' : '🚫'}
+                        </button>
+                        <button class="btn-small btn-delete" onclick="deleteParticipant(${p.id})">
+                            🗑️
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderPrizes() {
+            const list = document.getElementById('prizeList');
+            
+            list.innerHTML = prizes.map((prize, index) => `
+                <div class="participant-admin-item">
+                    <div class="participant-admin-info">
+                        <div class="participant-name">${prize}</div>
+                    </div>
+                    <div class="participant-admin-actions">
+                        <button class="btn-small btn-delete" onclick="deletePrize(${index})">
+                            🗑️
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderHistory() {
+            const historyEl = document.getElementById('winnerHistory');
+            const totalEl = document.getElementById('totalDraws');
+            
+            totalEl.textContent = history.length;
+            
+            const recent = history.slice(-10).reverse();
+            historyEl.innerHTML = recent.map(h => `
+                <div class="history-item">
+                    <div>
+                        <div class="history-name">${h.name}</div>
+                        <div class="history-date">${new Date(h.date).toLocaleString('es-ES')}</div>
+                    </div>
+                    <div class="history-prize">${h.prize}</div>
+                </div>
+            `).join('');
+        }
+
+        // ==============================================
+        // RULETA - DIBUJO
+        // ==============================================
+
+        function drawWheel() {
+            const canvas = document.getElementById('wheelCanvas');
+            const ctx = canvas.getContext('2d');
+            const activeParticipants = participants.filter(p => p.active);
+            
+            if (activeParticipants.length === 0) {
+                ctx.clearRect(0, 0, 600, 600);
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+                ctx.fillRect(0, 0, 600, 600);
+                ctx.fillStyle = '#F0F9FF';
+                ctx.font = 'bold 24px Montserrat';
+                ctx.textAlign = 'center';
+                ctx.fillText('No hay participantes activos', 300, 300);
+                return;
+            }
+
+            const centerX = 300;
+            const centerY = 300;
+            const radius = 290;
+            const sliceAngle = (2 * Math.PI) / activeParticipants.length;
+
+            ctx.clearRect(0, 0, 600, 600);
+
+            // Dibujar segmentos
+            activeParticipants.forEach((participant, index) => {
+                const startAngle = index * sliceAngle - Math.PI / 2;
+                const endAngle = startAngle + sliceAngle;
+                const color = WHEEL_COLORS[index % WHEEL_COLORS.length];
+
+                // Segmento
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+                ctx.closePath();
+                ctx.fillStyle = color;
+                ctx.fill();
+
+                // Borde
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+
+                // Texto
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(startAngle + sliceAngle / 2);
+                ctx.textAlign = 'right';
+                ctx.fillStyle = '#FFFFFF';
+                ctx.font = 'bold 16px Montserrat';
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+                ctx.shadowBlur = 4;
+                ctx.fillText(participant.name, radius - 20, 8);
+                ctx.restore();
+            });
+
+            // Borde exterior
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+            ctx.strokeStyle = '#F0F9FF';
+            ctx.lineWidth = 6;
+            ctx.stroke();
+        }
+
+        // ==============================================
+        // RULETA - GIRO
+        // ==============================================
+
+        function spinWheel() {
+            if (isSpinning) return;
+
+            const activeParticipants = participants.filter(p => p.active);
+            if (activeParticipants.length === 0) {
+                alert('No hay participantes activos para el sorteo');
+                return;
+            }
+
+            // Excluir ganadores recientes si está configurado
+            let eligibleParticipants = [...activeParticipants];
+            const excludeRecent = document.getElementById('excludeRecent').checked;
+            
+            if (excludeRecent && history.length > 0) {
+                const excludeCount = parseInt(document.getElementById('excludeCount').value);
+                const recentWinnerIds = history.slice(-excludeCount).map(h => h.participantId);
+                eligibleParticipants = activeParticipants.filter(p => !recentWinnerIds.includes(p.id));
+                
+                if (eligibleParticipants.length === 0) {
+                    eligibleParticipants = [...activeParticipants];
+                }
+            }
+
+            isSpinning = true;
+            document.getElementById('spinButton').disabled = true;
+
+            // Seleccionar ganador aleatorio
+            const winner = eligibleParticipants[Math.floor(Math.random() * eligibleParticipants.length)];
+            const winnerIndex = activeParticipants.findIndex(p => p.id === winner.id);
+            
+            // Calcular rotación
+            const sliceAngle = 360 / activeParticipants.length;
+            const targetAngle = 360 - (winnerIndex * sliceAngle + sliceAngle / 2);
+            const spins = 5; // 5 vueltas completas
+            const totalRotation = spins * 360 + targetAngle;
+
+            // Animar ruleta
+            const wheel = document.querySelector('.wheel');
+            wheel.style.transform = `rotate(${totalRotation}deg)`;
+
+            // Sonido de giro (simulado)
+            if (soundEnabled) {
+                playSpinSound();
+            }
+
+            // Mostrar ganador después de la animación
+            setTimeout(() => {
+                const prize = prizes[Math.floor(Math.random() * prizes.length)];
+                showWinner(winner, prize);
+                
+                // Guardar en histórico
+                history.push({
+                    participantId: winner.id,
+                    name: winner.name,
+                    company: winner.company,
+                    prize: prize,
+                    date: new Date().toISOString()
+                });
+                
+                saveData();
+                renderHistory();
+                
+                isSpinning = false;
+                document.getElementById('spinButton').disabled = false;
+                
+                // Reset rotación para siguiente giro
+                setTimeout(() => {
+                    wheel.style.transition = 'none';
+                    wheel.style.transform = 'rotate(0deg)';
+                    setTimeout(() => {
+                        wheel.style.transition = 'transform 6s cubic-bezier(0.17, 0.67, 0.12, 0.99)';
+                    }, 50);
+                }, 500);
+            }, 6000);
+        }
+
+        function showWinner(winner, prize) {
+            document.getElementById('modalWinnerName').textContent = winner.name;
+            document.getElementById('modalWinnerCompany').textContent = winner.company;
+            document.getElementById('modalPrize').textContent = `🎁 ${prize}`;
+            document.getElementById('winnerModal').classList.add('show');
+
+            if (soundEnabled) {
+                playWinnerSound();
+            }
+        }
+
+        // ==============================================
+        // SONIDOS (WEB AUDIO API)
+        // ==============================================
+
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSpinSound() {
+            if (!soundEnabled) return;
+            
+            // Sonido de giro usando osciladores
+            const duration = 5.5;
+            const now = audioContext.currentTime;
+            
+            // Oscilador principal con frecuencia descendente
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.type = 'sawtooth';
+            oscillator.frequency.setValueAtTime(200, now);
+            oscillator.frequency.exponentialRampToValueAtTime(50, now + duration);
+            
+            gainNode.gain.setValueAtTime(0.1, now);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, now + duration);
+            
+            oscillator.start(now);
+            oscillator.stop(now + duration);
+            
+            // Ruido de clics rápidos simulando fricción
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    if (!soundEnabled) return;
+                    const click = audioContext.createOscillator();
+                    const clickGain = audioContext.createGain();
+                    
+                    click.connect(clickGain);
+                    clickGain.connect(audioContext.destination);
+                    
+                    click.frequency.value = 800 + Math.random() * 400;
+                    clickGain.gain.value = 0.05;
+                    
+                    const clickTime = audioContext.currentTime;
+                    click.start(clickTime);
+                    click.stop(clickTime + 0.01);
+                }, i * 100 + Math.random() * 50);
+            }
+        }
+
+        function playWinnerSound() {
+            if (!soundEnabled) return;
+            
+            const now = audioContext.currentTime;
+            
+            // Fanfarria de victoria
+            const frequencies = [523.25, 659.25, 783.99, 1046.50]; // Do, Mi, Sol, Do (octava)
+            
+            frequencies.forEach((freq, index) => {
+                setTimeout(() => {
+                    const osc = audioContext.createOscillator();
+                    const gain = audioContext.createGain();
+                    
+                    osc.connect(gain);
+                    gain.connect(audioContext.destination);
+                    
+                    osc.type = 'sine';
+                    osc.frequency.value = freq;
+                    
+                    const startTime = audioContext.currentTime;
+                    gain.gain.setValueAtTime(0.2, startTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.5);
+                    
+                    osc.start(startTime);
+                    osc.stop(startTime + 0.5);
+                }, index * 150);
+            });
+            
+            // Efecto de brillo adicional
+            setTimeout(() => {
+                const shimmer = audioContext.createOscillator();
+                const shimmerGain = audioContext.createGain();
+                
+                shimmer.connect(shimmerGain);
+                shimmerGain.connect(audioContext.destination);
+                
+                shimmer.type = 'triangle';
+                const shimmerTime = audioContext.currentTime;
+                shimmer.frequency.setValueAtTime(1000, shimmerTime);
+                shimmer.frequency.exponentialRampToValueAtTime(2000, shimmerTime + 0.3);
+                
+                shimmerGain.gain.setValueAtTime(0.15, shimmerTime);
+                shimmerGain.gain.exponentialRampToValueAtTime(0.01, shimmerTime + 0.3);
+                
+                shimmer.start(shimmerTime);
+                shimmer.stop(shimmerTime + 0.3);
+            }, 600);
+        }
+
+        function playClickSound() {
+            if (!soundEnabled) return;
+            
+            const osc = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+            
+            osc.connect(gain);
+            gain.connect(audioContext.destination);
+            
+            osc.type = 'sine';
+            osc.frequency.value = 1200;
+            
+            const now = audioContext.currentTime;
+            gain.gain.setValueAtTime(0.1, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+            
+            osc.start(now);
+            osc.stop(now + 0.05);
+        }
+
+        // ==============================================
+        // GESTIÓN DE PARTICIPANTES
+        // ==============================================
+
+        function addParticipant() {
+            const name = document.getElementById('adminName').value.trim();
+            const company = document.getElementById('adminCompany').value.trim();
+
+            if (!name) {
+                alert('Por favor, introduce un nombre');
+                return;
+            }
+
+            const newId = participants.length > 0 ? Math.max(...participants.map(p => p.id)) + 1 : 1;
+            
+            participants.push({
+                id: newId,
+                name: name,
+                company: company || 'Sin empresa',
+                active: true
+            });
+
+            document.getElementById('adminName').value = '';
+            document.getElementById('adminCompany').value = '';
+
+            saveData();
+            renderParticipants();
+            renderAdminParticipants();
+            drawWheel();
+        }
+
+        function toggleParticipant(id) {
+            const participant = participants.find(p => p.id === id);
+            if (participant) {
+                participant.active = !participant.active;
+                saveData();
+                renderParticipants();
+                renderAdminParticipants();
+                drawWheel();
+            }
+        }
+
+        function deleteParticipant(id) {
+            if (!confirm('¿Estás seguro de eliminar este participante?')) return;
+            
+            participants = participants.filter(p => p.id !== id);
+            saveData();
+            renderParticipants();
+            renderAdminParticipants();
+            drawWheel();
+        }
+
+        // ==============================================
+        // GESTIÓN DE PREMIOS
+        // ==============================================
+
+        function addPrize() {
+            const prize = document.getElementById('adminPrize').value.trim();
+            
+            if (!prize) {
+                alert('Por favor, introduce un nombre de premio');
+                return;
+            }
+
+            prizes.push(prize);
+            document.getElementById('adminPrize').value = '';
+
+            saveData();
+            renderPrizes();
+        }
+
+        function deletePrize(index) {
+            if (!confirm('¿Estás seguro de eliminar este premio?')) return;
+            
+            prizes.splice(index, 1);
+            saveData();
+            renderPrizes();
+        }
+
+        // ==============================================
+        // UTILIDADES
+        // ==============================================
+
+        function resetHistory() {
+            if (!confirm('¿Estás seguro de reiniciar todo el histórico de sorteos?')) return;
+            
+            history = [];
+            saveData();
+            renderHistory();
+            alert('Histórico reiniciado correctamente');
+        }
+
+        function exportData() {
+            const csv = [
+                ['Fecha', 'Ganador', 'Empresa', 'Premio'],
+                ...history.map(h => [
+                    new Date(h.date).toLocaleString('es-ES'),
+                    h.name,
+                    h.company,
+                    h.prize
+                ])
+            ].map(row => row.join(',')).join('\n');
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `bni-jabega-sorteos-${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // ==============================================
+        // EVENT LISTENERS
+        // ==============================================
+
+        function setupEventListeners() {
+            document.getElementById('spinButton').addEventListener('click', spinWheel);
+            
+            document.getElementById('closeModal').addEventListener('click', () => {
+                document.getElementById('winnerModal').classList.remove('show');
+            });
+
+            document.getElementById('soundToggle').addEventListener('click', () => {
+                soundEnabled = !soundEnabled;
+                document.getElementById('soundToggle').textContent = soundEnabled ? '🔊' : '🔇';
+                if (soundEnabled) {
+                    playClickSound();
+                }
+            });
+
+            // Admin panel
+            let adminClicks = 0;
+            document.getElementById('adminLink').addEventListener('click', () => {
+                adminClicks++;
+                if (adminClicks >= 3) {
+                    const password = prompt('Introduce la contraseña de administrador:');
+                    if (password === 'BNIJabega2024') {
+                        document.getElementById('adminPanel').classList.add('open');
+                        adminClicks = 0;
+                    } else {
+                        alert('Contraseña incorrecta');
+                        adminClicks = 0;
+                    }
+                }
+                setTimeout(() => { adminClicks = 0; }, 1000);
+            });
+
+            document.getElementById('closeAdmin').addEventListener('click', () => {
+                document.getElementById('adminPanel').classList.remove('open');
+            });
+
+            document.getElementById('addParticipant').addEventListener('click', addParticipant);
+            document.getElementById('addPrize').addEventListener('click', addPrize);
+            document.getElementById('resetHistory').addEventListener('click', resetHistory);
+            document.getElementById('exportData').addEventListener('click', exportData);
+
+            // Enter en inputs
+            document.getElementById('adminName').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') addParticipant();
+            });
+            document.getElementById('adminPrize').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') addPrize();
+            });
+
+            // Stats button
+            document.getElementById('statsButton').addEventListener('click', () => {
+                alert('Funcionalidad de estadísticas avanzadas próximamente');
+            });
+        }
+
+        // ==============================================
+        // INICIAR APLICACIÓN
+        // ==============================================
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
